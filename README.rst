@@ -604,3 +604,26 @@ best to use multiple client objects for each separate use case::
     client.delete_file('image.jpg')
 
 .. _`Luwak`: http://wiki.basho.com/Luwak.html
+
+
+Using with Tornado
+==================
+
+Tornado support is implemented by mocking httplib.HTTPConnection used by RiakHttpTransport. It uses tornado.httpclient.AsyncHTTPClient to make requests to Riak and holds context in greenlet in to order to yield control back to IOLoop.
+
+Riak client has to be provided with appropriate transport::
+
+    from riak import RiakClient
+    from riak.transports import RiakTornadoTransport
+    riak = RiakClient(transport_class = RiakTornadoTransport)
+
+Additionally it requires all get/post/put/delete methods of Tornado RequestHandlers, where Riak is accessed directly or via ORM-like libraries to be wrapped::
+
+    from riak.transports import async
+    from tornado.web import RequestHandler
+    from ... import riak
+
+    class SomeHandler(RequestHandler):
+        @async
+        def get(self, request):
+            ...
